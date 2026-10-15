@@ -1,9 +1,3 @@
-// frontend/src/lib/format.ts
-
-/**
- * Format a number as Rwandan Francs.
- * RWF has no subunit in practice — we show whole numbers.
- */
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-RW", {
     style: "currency",
