@@ -1,7 +1,13 @@
+import { Routes, Route, Navigate } from "react-router-dom";
+import Signup from "./pages/Signup";
+import Login from "./pages/Login";
+
 export default function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <h1 className="text-3xl font-bold text-slate-800">Retain</h1>
-    </div>
+    <Routes>
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="*" element={<Navigate to="/signup" replace />} />
+    </Routes>
   );
 }
