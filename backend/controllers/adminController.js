@@ -1,10 +1,16 @@
+// backend/controllers/adminController.js
+
 const db = require("../db");
 
-// getting admin insdight
+/* -------------------- GET /api/admin/insights -------------------- */
 async function getInsights(req, res, next) {
   try {
-    const usersCount = await db.query("SELECT COUNT(*)::int AS total FROM users");
-    const expensesCount = await db.query("SELECT COUNT(*)::int AS total FROM expenses");
+    const usersCount = await db.query(
+      "SELECT COUNT(*)::int AS total FROM users"
+    );
+    const expensesCount = await db.query(
+      "SELECT COUNT(*)::int AS total FROM expenses"
+    );
     const totalValue = await db.query(
       "SELECT COALESCE(SUM(amount), 0) AS total FROM expenses"
     );
@@ -31,15 +37,6 @@ async function getInsights(req, res, next) {
        LEFT JOIN expenses e ON e.category_id = c.id
        GROUP BY c.id, c.name
        ORDER BY usage_count DESC, c.name ASC
-       LIMIT 5`
-    );
-
-    const bottomFive = await db.query(
-      `SELECT c.name, COUNT(e.id)::int AS usage_count
-       FROM categories c
-       LEFT JOIN expenses e ON e.category_id = c.id
-       GROUP BY c.id, c.name
-       ORDER BY usage_count ASC, c.name ASC
        LIMIT 5`
     );
 
@@ -71,10 +68,6 @@ async function getInsights(req, res, next) {
         category: row.name,
         usageCount: Number(row.usage_count || 0),
       })),
-      bottom5LeastUsedCategories: bottomFive.rows.map((row) => ({
-        category: row.name,
-        usageCount: Number(row.usage_count || 0),
-      })),
       recentlyAddedExpenses: recentExpenses.rows,
       recentlyRegisteredUsers: recentUsers.rows,
     });
@@ -83,7 +76,56 @@ async function getInsights(req, res, next) {
   }
 }
 
-// get admin api categories
+/* -------------------- GET /api/admin/users -------------------- */
+async function listAllUsers(req, res, next) {
+  try {
+    const result = await db.query(
+      `SELECT id, name, email, role, created_at
+       FROM users
+       ORDER BY created_at DESC`
+    );
+    return res.json({ users: result.rows });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+/* -------------------- GET /api/admin/expenses -------------------- */
+async function listAllExpenses(req, res, next) {
+  try {
+    const result = await db.query(
+      `SELECT
+         e.id, e.title, e.amount, e.date, e.payment_method, e.notes,
+         e.created_at,
+         c.name AS category_name,
+         u.email AS user_email,
+         u.name  AS user_name
+       FROM expenses e
+       JOIN categories c ON c.id = e.category_id
+       JOIN users u      ON u.id = e.user_id
+       ORDER BY e.created_at DESC`
+    );
+
+    return res.json({
+      expenses: result.rows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        amount: Number(r.amount),
+        date: r.date,
+        paymentMethod: r.payment_method,
+        notes: r.notes || "",
+        createdAt: r.created_at,
+        categoryName: r.category_name,
+        userEmail: r.user_email,
+        userName: r.user_name,
+      })),
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+/* -------------------- GET /api/admin/categories -------------------- */
 async function listCategoriesForAdmin(req, res, next) {
   try {
     const result = await db.query(
@@ -195,7 +237,6 @@ async function deleteCategory(req, res, next) {
     );
     const defaultId = defaultCategory.rows[0]?.id;
 
-    // Reassign any expenses tied to this category to the default one.
     if (defaultId) {
       await db.query(
         "UPDATE expenses SET category_id = $1 WHERE category_id = $2",
@@ -217,6 +258,8 @@ async function deleteCategory(req, res, next) {
 
 module.exports = {
   getInsights,
+  listAllUsers,
+  listAllExpenses,
   listCategoriesForAdmin,
   createCategory,
   updateCategory,
