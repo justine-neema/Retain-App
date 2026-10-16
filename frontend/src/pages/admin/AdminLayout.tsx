@@ -3,8 +3,10 @@
 import { NavLink, Outlet } from "react-router-dom";
 
 const TABS = [
-  { to: "/admin/categories", label: "Categories" },
   { to: "/admin/insights", label: "Insights" },
+  { to: "/admin/users", label: "Users" },
+  { to: "/admin/expenses", label: "All expenses" },
+  { to: "/admin/categories", label: "Categories" },
 ];
 
 export default function AdminLayout() {
@@ -24,7 +26,7 @@ export default function AdminLayout() {
         </p>
       </div>
 
-      <div className="flex gap-2 mb-6 border-b border-slate-200 pb-3">
+      <div className="flex flex-wrap gap-2 mb-6 border-b border-slate-200 pb-3">
         {TABS.map((t) => (
           <NavLink key={t.to} to={t.to} className={linkClasses}>
             {t.label}

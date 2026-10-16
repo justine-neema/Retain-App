@@ -9,19 +9,19 @@ import ExpenseForm from "./pages/ExpenseForm";
 import ExpenseDetail from "./pages/ExpenseDetail";
 import Budget from "./pages/Budget";
 import AdminLayout from "./pages/admin/AdminLayout";
-import AdminCategories from "./pages/admin/Categories";
 import AdminInsights from "./pages/admin/Insights";
+import AdminUsers from "./pages/admin/Users";
+import AdminExpenses from "./pages/admin/AdminExpenses";
+import AdminCategories from "./pages/admin/Categories";
 import AppLayout from "./components/AppLayout";
 import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
 
 export default function App() {
   return (
     <Routes>
-      {/* Public */}
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
 
-      {/* Authenticated */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -31,12 +31,13 @@ export default function App() {
           <Route path="/expenses/:id" element={<ExpenseDetail />} />
           <Route path="/budget" element={<Budget />} />
 
-          {/* Admin-only */}
           <Route element={<AdminRoute />}>
             <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Navigate to="categories" replace />} />
-              <Route path="categories" element={<AdminCategories />} />
+              <Route index element={<Navigate to="insights" replace />} />
               <Route path="insights" element={<AdminInsights />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="expenses" element={<AdminExpenses />} />
+              <Route path="categories" element={<AdminCategories />} />
             </Route>
           </Route>
         </Route>

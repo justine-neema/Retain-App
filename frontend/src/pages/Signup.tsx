@@ -1,38 +1,45 @@
+// frontend/src/pages/Signup.tsx
+
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import type { SignupInput } from "../types/auth";
 
 export default function Signup() {
-    const { signup } = useAuth();
-    const navigate = useNavigate();
+  const { signup } = useAuth();
+  const navigate = useNavigate();
 
-    const [form, setForm] = useState<SignupInput>({
-        name: "", email: "", password: "",
-    });
+  const [form, setForm] = useState<SignupInput>({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+  function update<K extends keyof SignupInput>(key: K, value: SignupInput[K]) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
 
-    function update<K extends keyof SignupInput>(key: K, value: SignupInput[K]) {
-        setForm((prev) => ({ ...prev, [key]: value }));
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const user = await signup(form);
+      if (user?.role === "ADMIN") {
+        navigate("/admin/insights", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? "Signup failed, please try again");
+    } finally {
+      setLoading(false);
     }
+  }
 
-    async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-        setError(null);
-        setLoading(true);
-        try {
-            await signup(form);
-            navigate("/dashboard");
-        } catch (err: any) {
-            setError(err.response?.data?.message || "Signup failed, please try again");
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    return (
+  return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow p-8">
         <h1 className="text-2xl font-bold text-slate-800 mb-1">

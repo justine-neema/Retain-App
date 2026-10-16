@@ -1,16 +1,16 @@
+// frontend/src/pages/Login.tsx
+
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import type { LoginInput } from "../types/auth";
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [form, setForm] = useState<LoginInput>({
-    email: "",
-    password: "",
-  });
+  const [form, setForm] = useState<LoginInput>({ email: "", password: "" });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -23,12 +23,20 @@ export default function Login() {
     setError(null);
     setLoading(true);
     try {
-      await login(form);
-      navigate("/dashboard");
+      const user = await login(form);
+
+      const from = (location.state as { from?: { pathname: string } } | null)
+        ?.from?.pathname;
+
+      if (from) {
+        navigate(from, { replace: true });
+      } else if (user?.role === "ADMIN") {
+        navigate("/admin/insights", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ?? "Login failed. Please try again.";
-      setError(message);
+      setError(err?.response?.data?.message ?? "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -37,9 +45,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow p-8">
-        <h1 className="text-2xl font-bold text-slate-800 mb-1">
-          Welcome back
-        </h1>
+        <h1 className="text-2xl font-bold text-slate-800 mb-1">Welcome back</h1>
         <p className="text-sm text-slate-500 mb-6">
           Sign in to continue to Retain.
         </p>
@@ -94,7 +100,7 @@ export default function Login() {
 
         <p className="mt-6 text-sm text-slate-600 text-center">
           Don't have an account?{" "}
-          <Link to="/signup" className="text-blue-600 hover:underline">
+          <Link to="/login" className="text-blue-600 hover:underline">
             Sign up
           </Link>
         </p>

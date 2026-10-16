@@ -1,6 +1,7 @@
 // frontend/src/pages/admin/Insights.tsx
 
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import { formatCurrency } from "../../lib/format";
 
@@ -11,7 +12,6 @@ interface InsightsResponse {
   expensesThisMonth: number;
   totalSpendingPerCategory: { category: string; total: number }[];
   top5MostUsedCategories: { category: string; usageCount: number }[];
-  bottom5LeastUsedCategories: { category: string; usageCount: number }[];
   recentlyAddedExpenses: {
     id: string;
     title: string;
@@ -71,24 +71,52 @@ export default function AdminInsights() {
 
   return (
     <div className="space-y-6">
-      {/* Top stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Total users" value={String(data.totalUsers)} />
-        <StatCard
-          label="Total expenses"
-          value={String(data.totalExpenses)}
-        />
-        <StatCard
-          label="Total value"
-          value={formatCurrency(data.totalExpenseValue)}
-        />
-        <StatCard
-          label="Expenses this month"
-          value={String(data.expensesThisMonth)}
-        />
+        <Link
+          to="/admin/users"
+          className="block bg-white rounded-lg shadow p-5 hover:shadow-md transition-shadow"
+        >
+          <p className="text-xs uppercase tracking-wide text-slate-600 font-medium">
+            Total users
+          </p>
+          <p className="text-2xl font-bold mt-2 text-slate-800">
+            {data.totalUsers}
+          </p>
+          <p className="text-xs text-blue-700 mt-1">View all →</p>
+        </Link>
+
+        <Link
+          to="/admin/expenses"
+          className="block bg-white rounded-lg shadow p-5 hover:shadow-md transition-shadow"
+        >
+          <p className="text-xs uppercase tracking-wide text-slate-600 font-medium">
+            Total expenses
+          </p>
+          <p className="text-2xl font-bold mt-2 text-slate-800">
+            {data.totalExpenses}
+          </p>
+          <p className="text-xs text-blue-700 mt-1">View all →</p>
+        </Link>
+
+        <div className="bg-white rounded-lg shadow p-5">
+          <p className="text-xs uppercase tracking-wide text-slate-600 font-medium">
+            Total value
+          </p>
+          <p className="text-2xl font-bold mt-2 text-slate-800">
+            {formatCurrency(data.totalExpenseValue)}
+          </p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-5">
+          <p className="text-xs uppercase tracking-wide text-slate-600 font-medium">
+            Expenses this month
+          </p>
+          <p className="text-2xl font-bold mt-2 text-slate-800">
+            {data.expensesThisMonth}
+          </p>
+        </div>
       </div>
 
-      {/* Spending per category */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-sm font-medium text-slate-700 mb-4">
           Total spending per category
@@ -123,62 +151,32 @@ export default function AdminInsights() {
         )}
       </div>
 
-      {/* Top / bottom used categories */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-sm font-medium text-slate-700 mb-4">
-            Top 5 most-used categories
-          </h2>
-          {data.top5MostUsedCategories.length === 0 ? (
-            <p className="text-sm text-slate-500">No data yet.</p>
-          ) : (
-            <ol className="space-y-2">
-              {data.top5MostUsedCategories.map((c, i) => (
-                <li
-                  key={c.category}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <span className="text-slate-700">
-                    <span className="text-slate-400 mr-2">{i + 1}.</span>
-                    {c.category}
-                  </span>
-                  <span className="text-slate-500 text-xs">
-                    {c.usageCount} use{c.usageCount === 1 ? "" : "s"}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-sm font-medium text-slate-700 mb-4">
-            Bottom 5 least-used categories
-          </h2>
-          {data.bottom5LeastUsedCategories.length === 0 ? (
-            <p className="text-sm text-slate-500">No data yet.</p>
-          ) : (
-            <ol className="space-y-2">
-              {data.bottom5LeastUsedCategories.map((c, i) => (
-                <li
-                  key={c.category}
-                  className="flex items-center justify-between text-sm"
-                >
-                  <span className="text-slate-700">
-                    <span className="text-slate-400 mr-2">{i + 1}.</span>
-                    {c.category}
-                  </span>
-                  <span className="text-slate-500 text-xs">
-                    {c.usageCount} use{c.usageCount === 1 ? "" : "s"}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-sm font-medium text-slate-700 mb-4">
+          Top 5 most-used categories
+        </h2>
+        {data.top5MostUsedCategories.length === 0 ? (
+          <p className="text-sm text-slate-500">No data yet.</p>
+        ) : (
+          <ol className="space-y-2">
+            {data.top5MostUsedCategories.map((c, i) => (
+              <li
+                key={c.category}
+                className="flex items-center justify-between text-sm"
+              >
+                <span className="text-slate-700">
+                  <span className="text-slate-400 mr-2">{i + 1}.</span>
+                  {c.category}
+                </span>
+                <span className="text-slate-500 text-xs">
+                  {c.usageCount} use{c.usageCount === 1 ? "" : "s"}
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
 
-      {/* Recent activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-sm font-medium text-slate-700 mb-4">
@@ -240,17 +238,6 @@ export default function AdminInsights() {
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-white rounded-lg shadow p-5">
-      <p className="text-xs uppercase tracking-wide text-slate-600 font-medium">
-        {label}
-      </p>
-      <p className="text-2xl font-bold mt-2 text-slate-800">{value}</p>
     </div>
   );
 }
