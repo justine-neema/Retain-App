@@ -155,7 +155,7 @@ export default function ExpenseForm() {
   const errorClass = "text-xs text-red-600 mt-1";
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800">
           {isEdit ? "Edit expense" : "Add expense"}

@@ -79,12 +79,12 @@ async function getExpenseSummary(req, res, next) {
     );
 
     const recent = await db.query(
-      `${EXPENSE_SELECT}
-       WHERE e.user_id = $1
-       ORDER BY e.date DESC, e.created_at DESC
-       LIMIT 5`,
-      [req.user.sub]
-    );
+  `${EXPENSE_SELECT}
+   WHERE e.user_id = $1 AND to_char(e.date, 'YYYY-MM') = $2
+   ORDER BY e.date DESC, e.created_at DESC
+   LIMIT 10`,
+  [req.user.sub, month]
+);
 
     const totalSpent = Number(totalResult.rows[0]?.total_spent || 0);
     const monthlyBudget = Number(budgetResult.rows[0]?.amount || 0);

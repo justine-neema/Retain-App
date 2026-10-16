@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ExpensesList from "./pages/ExpensesList";
 import ExpenseForm from "./pages/ExpenseForm";
+import Budget from "./pages/Budget";
 import ExpenseDetail from "./pages/ExpenseDetail";
 import AppLayout from "./components/AppLayout";
 import { ProtectedRoute, AdminRoute } from "./components/ProtectedRoute";
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/expenses/new" element={<ExpenseForm />} />
           <Route path="/expenses/:id/edit" element={<ExpenseForm />} />
           <Route path="/expenses/:id" element={<ExpenseDetail />} />
+          <Route path="/budget" element={<Budget/>} />
 
           <Route element={<AdminRoute />}>
             <Route
