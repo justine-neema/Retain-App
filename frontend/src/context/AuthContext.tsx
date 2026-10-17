@@ -66,6 +66,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await api.post<AuthResponse>("/auth/login", input);
     localStorage.setItem(TOKEN_KEY, res.data.token);
     setUser(res.data.user);
+    // force-loading-off; user is now settled
+    setIsLoading(false);
     return res.data.user;
   }, []);
 
@@ -73,12 +75,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await api.post<AuthResponse>("/auth/signup", input);
     localStorage.setItem(TOKEN_KEY, res.data.token);
     setUser(res.data.user);
+    setIsLoading(false);
     return res.data.user;
   }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     setUser(null);
+    setIsLoading(false);
   }, []);
 
   const value = useMemo<AuthContextValue>(

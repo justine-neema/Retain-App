@@ -25,13 +25,17 @@ export default function Login() {
     try {
       const user = await login(form);
 
-      // If they were sent here by a guard, send them back.
+      // If a guard bounced them here, send them back (but only if the
+      // target is valid for their role — otherwise redirect by role).
       const from = (location.state as { from?: { pathname: string } } | null)
         ?.from?.pathname;
 
-      if (from) {
+      const isAdmin = user.role === "ADMIN";
+      const adminOnly = from?.startsWith("/admin");
+
+      if (from && (!adminOnly || isAdmin)) {
         navigate(from, { replace: true });
-      } else if (user.role === "ADMIN") {
+      } else if (isAdmin) {
         navigate("/admin/dashboard", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
