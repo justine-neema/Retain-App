@@ -1,8 +1,6 @@
-// backend/controllers/adminController.js
-
 const db = require("../db");
 
-/* -------------------- GET /api/admin/insights -------------------- */
+// Get api/admin/dashboard
 async function getInsights(req, res, next) {
   try {
     const usersCount = await db.query(
@@ -89,7 +87,7 @@ async function getInsights(req, res, next) {
   }
 }
 
-/* -------------------- GET /api/admin/users -------------------- */
+// allowing admin to view users
 async function listAllUsers(req, res, next) {
   try {
     const result = await db.query(
@@ -103,7 +101,7 @@ async function listAllUsers(req, res, next) {
   }
 }
 
-/* -------------------- GET /api/admin/expenses -------------------- */
+// allowing admin to view expenses
 async function listAllExpenses(req, res, next) {
   try {
     const result = await db.query(
@@ -138,7 +136,7 @@ async function listAllExpenses(req, res, next) {
   }
 }
 
-/* -------------------- GET /api/admin/categories -------------------- */
+// allow admin do all CRUD operation on categories
 async function listCategoriesForAdmin(req, res, next) {
   try {
     const result = await db.query(
@@ -153,7 +151,7 @@ async function listCategoriesForAdmin(req, res, next) {
   }
 }
 
-/* -------------------- POST /api/admin/categories -------------------- */
+// endpoint for creating categories 
 async function createCategory(req, res, next) {
   try {
     const { name, icon = "tag", color = "#6B7280" } = req.body || {};
@@ -184,7 +182,7 @@ async function createCategory(req, res, next) {
   }
 }
 
-/* -------------------- PUT /api/admin/categories/:id -------------------- */
+// endpoint for updating categories 
 async function updateCategory(req, res, next) {
   try {
     const { name, icon, color } = req.body || {};
@@ -223,7 +221,7 @@ async function updateCategory(req, res, next) {
   }
 }
 
-/* -------------------- DELETE /api/admin/categories/:id -------------------- */
+// endpoint for deleting categories
 async function deleteCategory(req, res, next) {
   try {
     const category = await db.query(
