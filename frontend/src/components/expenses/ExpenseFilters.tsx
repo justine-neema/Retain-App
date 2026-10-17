@@ -8,7 +8,9 @@ import {
   setDateTo,
   setSearch,
   toggleCategory,
+  togglePaymentMethod,
 } from "../../redux/filtersSlice";
+import { PAYMENT_METHODS } from "../../lib/constants";
 import type { Category } from "../../types/category";
 
 interface Props {
@@ -36,8 +38,9 @@ export default function ExpenseFilters({ categories }: Props) {
     setSearchText(filters.search);
   }, [filters.search]);
 
-  // Single-select category (backend accepts one at a time)
+  // Single-select helpers (backend accepts one at a time)
   const selectedCategoryId = filters.categoryIds[0] ?? "";
+  const selectedPaymentMethod = filters.paymentMethods[0] ?? "";
 
   function handleCategoryChange(value: string) {
     if (filters.categoryIds[0])
@@ -45,9 +48,16 @@ export default function ExpenseFilters({ categories }: Props) {
     if (value) dispatch(toggleCategory(value));
   }
 
+  function handlePaymentMethodChange(value: string) {
+    if (filters.paymentMethods[0])
+      dispatch(togglePaymentMethod(filters.paymentMethods[0]));
+    if (value) dispatch(togglePaymentMethod(value));
+  }
+
   const hasActiveFilters =
     filters.search !== "" ||
     filters.categoryIds.length > 0 ||
+    filters.paymentMethods.length > 0 ||
     filters.dateFrom !== null ||
     filters.dateTo !== null;
 
@@ -55,13 +65,13 @@ export default function ExpenseFilters({ categories }: Props) {
     "w-full rounded-md border border-slate-300 px-3 py-2 text-sm bg-white " +
     "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
 
-  const labelClass = "block text-xs font-medium text-slate-500 mb-1";
+  const labelClass = "block text-xs font-medium text-slate-600 mb-1";
 
   return (
     <div className="bg-white rounded-lg shadow p-4 mb-4 space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
         {/* Search */}
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-4">
           <label className={labelClass}>Search</label>
           <input
             type="search"
@@ -73,7 +83,7 @@ export default function ExpenseFilters({ categories }: Props) {
         </div>
 
         {/* Category */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-2">
           <label className={labelClass}>Category</label>
           <select
             value={selectedCategoryId}
@@ -84,6 +94,23 @@ export default function ExpenseFilters({ categories }: Props) {
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Payment */}
+        <div className="lg:col-span-2">
+          <label className={labelClass}>Payment</label>
+          <select
+            value={selectedPaymentMethod}
+            onChange={(e) => handlePaymentMethodChange(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">All</option>
+            {PAYMENT_METHODS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
               </option>
             ))}
           </select>
@@ -118,7 +145,7 @@ export default function ExpenseFilters({ categories }: Props) {
           <button
             type="button"
             onClick={() => dispatch(resetFilters())}
-            className="text-xs text-blue-600 hover:text-blue-700"
+            className="text-xs text-blue-700 hover:text-blue-800"
           >
             Clear all filters
           </button>

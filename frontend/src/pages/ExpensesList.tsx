@@ -1,8 +1,9 @@
 // frontend/src/pages/ExpensesList.tsx
 
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { api } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { resetFilters, setSort } from "../redux/filtersSlice";
 import type { Category, CategoryListResponse } from "../types/category";
@@ -12,6 +13,7 @@ import { paymentMethodLabel } from "../lib/constants";
 import ExpenseFilters from "../components/expenses/ExpenseFilters";
 
 export default function ExpensesList() {
+  const { user } = useAuth();
   const filters = useAppSelector((s) => s.filters);
   const dispatch = useAppDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,7 +26,6 @@ export default function ExpensesList() {
   const pageFromUrl = Number(searchParams.get("page") || filters.page);
   const page = pageFromUrl > 0 ? pageFromUrl : 1;
 
-  // Load categories once (needed by filters).
   useEffect(() => {
     api
       .get<CategoryListResponse>("/categories")
@@ -32,7 +33,6 @@ export default function ExpensesList() {
       .catch(() => setCategories([]));
   }, []);
 
-  // Build the query string from the Redux filter state.
   const query = useMemo(() => {
     const params = new URLSearchParams();
     if (filters.search) params.set("q", filters.search);
@@ -47,7 +47,6 @@ export default function ExpensesList() {
     return params.toString();
   }, [filters]);
 
-  // Fetch expenses whenever the query changes.
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -71,7 +70,6 @@ export default function ExpensesList() {
     };
   }, [query]);
 
-  // Keep URL page in sync when Redux changes it.
   useEffect(() => {
     if (page !== filters.page) {
       const next = new URLSearchParams(searchParams);
@@ -80,9 +78,13 @@ export default function ExpensesList() {
     }
   }, [filters.page, page, searchParams, setSearchParams]);
 
+  // --- Admins use /admin/expenses, not the personal list ---
+  if (user?.role === "ADMIN") {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
   return (
     <div>
-      {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Expenses</h1>
@@ -92,18 +94,15 @@ export default function ExpensesList() {
         </div>
         <Link
           to="/expenses/new"
-          className="rounded-md bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700"
+          className="rounded-md bg-blue-700 text-white px-4 py-2 text-sm font-medium hover:bg-blue-800"
         >
           + Add expense
         </Link>
       </div>
 
-      {/* Filter panel */}
       <ExpenseFilters categories={categories} />
 
-      {/* Results card */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        {/* Results header: count + sort */}
         <div className="px-4 sm:px-6 py-3 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <p className="text-xs text-slate-500">
             {loading
@@ -143,7 +142,6 @@ export default function ExpensesList() {
           </div>
         </div>
 
-        {/* Results body */}
         {loading ? (
           <p className="p-6 text-sm text-slate-500">Loading…</p>
         ) : error ? (
@@ -155,7 +153,7 @@ export default function ExpensesList() {
             </p>
             <button
               onClick={() => dispatch(resetFilters())}
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-sm text-blue-700 hover:text-blue-800"
             >
               Clear all filters
             </button>
