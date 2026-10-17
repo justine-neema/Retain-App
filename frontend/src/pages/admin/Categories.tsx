@@ -2,12 +2,8 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { api } from "../../lib/api";
-import type {
-  Category,
-  CategoryResponse,
-} from "../../types/category";
+import type { Category, CategoryResponse } from "../../types/category";
 
-// Admin's own category type (adds created_at)
 interface AdminCategory extends Category {
   created_at?: string;
 }
@@ -22,20 +18,17 @@ export default function AdminCategories() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Create form
   const [newName, setNewName] = useState("");
   const [newIcon, setNewIcon] = useState("tag");
   const [newColor, setNewColor] = useState("#3B82F6");
   const [creating, setCreating] = useState(false);
 
-  // Edit inline
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editIcon, setEditIcon] = useState("tag");
   const [editColor, setEditColor] = useState("#3B82F6");
   const [savingEdit, setSavingEdit] = useState(false);
 
-  // Delete confirmation
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -158,6 +151,14 @@ export default function AdminCategories() {
 
   return (
     <div>
+      {/* Page header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-800">Categories</h1>
+        <p className="text-sm text-slate-500">
+          Create and manage the categories users can pick from.
+        </p>
+      </div>
+
       {error && (
         <div className="mb-4 rounded-md bg-red-50 border border-red-200 text-red-800 text-sm px-3 py-2">
           {error}
@@ -170,14 +171,17 @@ export default function AdminCategories() {
       )}
 
       {/* Create form */}
-      <form
-        onSubmit={handleCreate}
-        className="bg-white rounded-lg shadow p-5 mb-6"
-      >
-        <h2 className="text-sm font-medium text-slate-700 mb-3">
-          Add a new category
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+      <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="mb-4">
+          <h2 className="text-base font-semibold text-slate-800">
+            Add a new category
+          </h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Categories are shared by all users.
+          </p>
+        </div>
+
+        <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
           <div className="sm:col-span-5">
             <label className="block text-xs font-medium text-slate-600 mb-1">
               Name
@@ -194,7 +198,7 @@ export default function AdminCategories() {
 
           <div className="sm:col-span-3">
             <label className="block text-xs font-medium text-slate-600 mb-1">
-              Icon (optional)
+              Icon
             </label>
             <input
               type="text"
@@ -218,131 +222,138 @@ export default function AdminCategories() {
             />
           </div>
 
-          <div className="sm:col-span-2 flex sm:items-end">
+          <div className="sm:col-span-2">
             <button
               type="submit"
               disabled={creating}
               className="w-full rounded-md bg-blue-700 text-white px-4 py-2 text-sm font-medium
                          hover:bg-blue-800 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {creating ? "Adding…" : "Add"}
+              {creating ? "Adding…" : "Add category"}
             </button>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
 
       {/* Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200">
-          <p className="text-xs text-slate-500">
-            {loading
-              ? "Loading…"
-              : `${categories.length} ${
-                  categories.length === 1 ? "category" : "categories"
-                }`}
-          </p>
+        {/* Table header (desktop) */}
+        <div className="hidden md:grid grid-cols-12 gap-3 px-5 py-3 border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500 font-medium">
+          <span className="col-span-6">Category</span>
+          <span className="col-span-3">Icon</span>
+          <span className="col-span-3 text-right">Actions</span>
         </div>
 
         {loading ? (
           <p className="p-6 text-sm text-slate-500">Loading…</p>
         ) : categories.length === 0 ? (
-          <p className="p-6 text-sm text-slate-500">
+          <p className="p-6 text-sm text-slate-500 text-center">
             No categories yet. Add one above.
           </p>
         ) : (
           <ul className="divide-y divide-slate-100">
             {categories.map((c) => {
               const isEditing = editingId === c.id;
+              if (isEditing) {
+                return (
+                  <li
+                    key={c.id}
+                    className="px-5 py-3 grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-3 items-center bg-blue-50/40"
+                  >
+                    <div className="md:col-span-6 flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm
+                                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <input
+                        type="color"
+                        value={editColor}
+                        onChange={(e) => setEditColor(e.target.value)}
+                        className="h-[34px] w-10 rounded-md border border-slate-300 bg-white cursor-pointer"
+                      />
+                    </div>
+                    <div className="md:col-span-3">
+                      <input
+                        type="text"
+                        value={editIcon}
+                        onChange={(e) => setEditIcon(e.target.value)}
+                        className="w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm
+                                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="md:col-span-3 flex gap-2 md:justify-end">
+                      <button
+                        onClick={() => saveEdit(c.id)}
+                        disabled={savingEdit}
+                        className="rounded-md bg-blue-700 text-white px-3 py-1.5 text-xs font-medium
+                                   hover:bg-blue-800 disabled:opacity-60"
+                      >
+                        {savingEdit ? "Saving…" : "Save"}
+                      </button>
+                      <button
+                        onClick={cancelEdit}
+                        className="rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-700 hover:bg-white"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </li>
+                );
+              }
+
               return (
                 <li
                   key={c.id}
-                  className="px-5 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                  className="px-5 py-3 grid grid-cols-1 md:grid-cols-12 gap-3 items-center"
                 >
-                  {isEditing ? (
-                    <>
-                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <input
-                          type="text"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm
-                                     focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <input
-                          type="text"
-                          value={editIcon}
-                          onChange={(e) => setEditIcon(e.target.value)}
-                          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm
-                                     focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <input
-                          type="color"
-                          value={editColor}
-                          onChange={(e) => setEditColor(e.target.value)}
-                          className="rounded-md border border-slate-300 bg-white h-[34px] cursor-pointer"
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => saveEdit(c.id)}
-                          disabled={savingEdit}
-                          className="rounded-md bg-blue-700 text-white px-3 py-1.5 text-xs font-medium
-                                     hover:bg-blue-800 disabled:opacity-60"
-                        >
-                          {savingEdit ? "Saving…" : "Save"}
-                        </button>
-                        <button
-                          onClick={cancelEdit}
-                          className="rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <span
-                          className="inline-block h-3 w-3 rounded-full shrink-0"
-                          style={{ backgroundColor: c.color ?? "#CBD5E1" }}
-                        />
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-slate-800 truncate">
-                            {c.name}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            icon: {c.icon ?? "—"}
-                            {c.isDefault && (
-                              <span className="ml-2 inline-flex items-center rounded-full bg-slate-100 text-slate-600 px-2 py-0.5 text-[10px] uppercase tracking-wide">
-                                default
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => beginEdit(c)}
-                          className="rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => setDeletingId(c.id)}
-                          disabled={c.isDefault}
-                          title={
-                            c.isDefault
-                              ? "The default category cannot be deleted"
-                              : "Delete this category"
-                          }
-                          className="rounded-md border border-red-300 text-red-700 px-3 py-1.5 text-xs
-                                     hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </>
-                  )}
+                  {/* Name + swatch */}
+                  <div className="md:col-span-6 flex items-center gap-3 min-w-0">
+                    <span
+                      className="inline-block h-3 w-3 rounded-full shrink-0 ring-2 ring-white"
+                      style={{ backgroundColor: c.color ?? "#CBD5E1" }}
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-slate-800 truncate">
+                        {c.name}
+                        {c.isDefault && (
+                          <span className="ml-2 inline-flex items-center rounded-full bg-slate-100 text-slate-600 px-2 py-0.5 text-[10px] uppercase tracking-wide">
+                            default
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Icon */}
+                  <div className="md:col-span-3 text-xs text-slate-500">
+                    {c.icon ?? "—"}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="md:col-span-3 flex gap-2 md:justify-end">
+                    <button
+                      onClick={() => beginEdit(c)}
+                      className="rounded-md border border-slate-300 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setDeletingId(c.id)}
+                      disabled={c.isDefault}
+                      title={
+                        c.isDefault
+                          ? "The default category cannot be deleted"
+                          : "Delete this category"
+                      }
+                      className="rounded-md border border-red-300 text-red-700 px-3 py-1.5 text-xs
+                                 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </li>
               );
             })}
@@ -350,7 +361,7 @@ export default function AdminCategories() {
         )}
       </div>
 
-      {/* Delete confirmation modal */}
+      {/* Delete confirmation */}
       {deletingId && pendingDelete && (
         <div
           className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"

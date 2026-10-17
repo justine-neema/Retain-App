@@ -40,6 +40,15 @@ async function getInsights(req, res, next) {
        LIMIT 5`
     );
 
+    const bottomFive = await db.query(
+      `SELECT c.name, COUNT(e.id)::int AS usage_count
+       FROM categories c
+       LEFT JOIN expenses e ON e.category_id = c.id
+       GROUP BY c.id, c.name
+       ORDER BY usage_count ASC, c.name ASC
+       LIMIT 5`
+    );
+
     const recentExpenses = await db.query(
       `SELECT e.id, e.title, e.amount, e.date, u.email AS user_email
        FROM expenses e
@@ -65,6 +74,10 @@ async function getInsights(req, res, next) {
         total: Number(row.total || 0),
       })),
       top5MostUsedCategories: topFive.rows.map((row) => ({
+        category: row.name,
+        usageCount: Number(row.usage_count || 0),
+      })),
+      bottom5LeastUsedCategories: bottomFive.rows.map((row) => ({
         category: row.name,
         usageCount: Number(row.usage_count || 0),
       })),

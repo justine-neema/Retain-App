@@ -25,13 +25,14 @@ export default function Login() {
     try {
       const user = await login(form);
 
+      // If they were sent here by a guard, send them back.
       const from = (location.state as { from?: { pathname: string } } | null)
         ?.from?.pathname;
 
       if (from) {
         navigate(from, { replace: true });
-      } else if (user?.role === "ADMIN") {
-        navigate("/admin/insights", { replace: true });
+      } else if (user.role === "ADMIN") {
+        navigate("/admin/dashboard", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
       }
@@ -100,7 +101,7 @@ export default function Login() {
 
         <p className="mt-6 text-sm text-slate-600 text-center">
           Don't have an account?{" "}
-          <Link to="/login" className="text-blue-600 hover:underline">
+          <Link to="/signup" className="text-blue-600 hover:underline">
             Sign up
           </Link>
         </p>

@@ -7,14 +7,19 @@ import { useAuth } from "../context/AuthContext";
 interface NavItem {
   to: string;
   label: string;
-  adminOnly?: boolean;
 }
 
-const NAV_ITEMS: NavItem[] = [
+const USER_NAV: NavItem[] = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/expenses", label: "Expenses" },
   { to: "/budget", label: "Budget" },
-  { to: "/admin", label: "Admin", adminOnly: true },
+];
+
+const ADMIN_NAV: NavItem[] = [
+  { to: "/admin/dashboard", label: "Admin dashboard" },
+  { to: "/admin/users", label: "Users" },
+  { to: "/admin/expenses", label: "All expenses" },
+  { to: "/admin/categories", label: "Categories" },
 ];
 
 export default function AppLayout() {
@@ -28,23 +33,19 @@ export default function AppLayout() {
     navigate("/login");
   }
 
-  const visibleItems = NAV_ITEMS.filter(
-    (item) => !item.adminOnly || user?.role === "ADMIN"
-  );
+  const isAdmin = user?.role === "ADMIN";
+  const items = isAdmin ? ADMIN_NAV : USER_NAV;
 
   const linkClasses = ({ isActive }: { isActive: boolean }) =>
     `block rounded-md px-3 py-2 text-sm font-medium transition-colors ${
       isActive
-        ? "bg-blue-600 text-white"
+        ? "bg-blue-700 text-white"
         : "text-slate-300 hover:bg-slate-800 hover:text-white"
     }`;
 
   return (
     <div className="min-h-screen bg-slate-100 lg:flex">
-      {/* ============================================================
-          MOBILE / TABLET TOP BAR
-          Visible below lg. Sticky at the top.
-         ============================================================ */}
+      {/* Mobile top bar */}
       <header className="lg:hidden sticky top-0 z-30 h-14 bg-slate-900 text-white flex items-center justify-between px-4 shadow">
         <button
           onClick={() => setMobileOpen(true)}
@@ -65,17 +66,11 @@ export default function AppLayout() {
             />
           </svg>
         </button>
-
         <span className="font-semibold tracking-wide">Retain</span>
-
-        {/* Placeholder keeps title visually centered */}
         <div className="w-10" />
       </header>
 
-      {/* ============================================================
-          MOBILE / TABLET BACKDROP
-          Covers the rest of the screen while the drawer is open.
-         ============================================================ */}
+      {/* Backdrop (mobile) */}
       {mobileOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
@@ -84,11 +79,7 @@ export default function AppLayout() {
         />
       )}
 
-      {/* ============================================================
-          SIDEBAR
-          - < lg: fixed drawer, translated off-screen unless open
-          - ≥ lg: sticky, always visible, full height
-         ============================================================ */}
+      {/* Sidebar */}
       <aside
         className={`
           fixed inset-y-0 left-0 z-50 w-64
@@ -98,7 +89,7 @@ export default function AppLayout() {
           lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:z-auto
         `}
       >
-        {/* ------ Brand block (always visible) ------ */}
+        {/* Brand */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-slate-800">
           <div>
             <h1 className="text-xl font-bold leading-tight">Retain</h1>
@@ -106,8 +97,6 @@ export default function AppLayout() {
               Personal finance tracker
             </p>
           </div>
-
-          {/* Close button — mobile/tablet only */}
           <button
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
@@ -129,9 +118,9 @@ export default function AppLayout() {
           </button>
         </div>
 
-        {/* ------ Navigation ------ */}
+        {/* Nav */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {visibleItems.map((item) => (
+          {items.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -143,12 +132,10 @@ export default function AppLayout() {
           ))}
         </nav>
 
-        {/* ------ User + Sign out ------ */}
+        {/* User + sign out */}
         <div className="border-t border-slate-800 p-4">
           <p className="text-xs text-slate-400 truncate">{user?.email}</p>
-          <p className="text-xs text-slate-500 mb-3">
-            Role: {user?.role}
-          </p>
+          <p className="text-xs text-slate-500 mb-3">Role: {user?.role}</p>
           <button
             onClick={handleLogout}
             className="w-full rounded-md bg-slate-800 text-slate-200 px-3 py-2 text-sm hover:bg-slate-700 transition-colors"
@@ -158,9 +145,7 @@ export default function AppLayout() {
         </div>
       </aside>
 
-      {/* ============================================================
-          MAIN CONTENT
-         ============================================================ */}
+      {/* Main */}
       <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
         <Outlet />
       </main>
