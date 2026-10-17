@@ -1,12 +1,11 @@
 // frontend/src/pages/Dashboard.tsx
 
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
-  Bar,
-  BarChart,
   CartesianGrid,
-  Cell,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -23,24 +22,17 @@ import {
 } from "../lib/format";
 import { paymentMethodLabel } from "../lib/constants";
 
-// Blues-only chart palette — dark to light. Softer saturation for accessibility.
-const CHART_COLORS = [
-  "#1E3A8A", // blue-900 (darkest)
-  "#1E40AF", // blue-800
-  "#1D4ED8", // blue-700
-  "#2563EB", // blue-600
-  "#3B82F6", // blue-500
-  "#60A5FA", // blue-400
-  "#7DA9F0", // between 400 and 300 (softer)
-  "#A5C4F3", // softer than blue-300
-];
-
 export default function Dashboard() {
   const { user } = useAuth();
   const [month, setMonth] = useState<string>(toMonthKey());
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // --- FIX: Admins do not have a user dashboard ---
+  if (user?.role === "ADMIN") {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -105,7 +97,6 @@ export default function Dashboard() {
       ? "approaching"
       : "within";
 
-  // Softer pill backgrounds, darker text, blue for "within".
   const statusMeta = {
     none: {
       label: "No budget set",
@@ -129,12 +120,12 @@ export default function Dashboard() {
     },
   }[status];
 
-  const chartData = spendingByCategory
+  const chartData = [...spendingByCategory]
     .filter((c) => c.total > 0)
-    .map((c, i) => ({
+    .sort((a, b) => b.total - a.total)
+    .map((c) => ({
       name: c.category,
       total: c.total,
-      fill: CHART_COLORS[i % CHART_COLORS.length],
     }));
 
   return (
@@ -194,7 +185,7 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Budget progress + highest expense */}
+      {/* Budget status + highest expense */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div className="lg:col-span-2 bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-3">
@@ -257,7 +248,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Spending by category + recent expenses */}
+      {/* Line chart + recent expenses */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3 bg-white rounded-lg shadow p-6">
           <h2 className="text-sm font-medium text-slate-700 mb-4">
@@ -271,26 +262,20 @@ export default function Dashboard() {
           ) : (
             <div style={{ width: "100%", height: 320 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
+                <LineChart
                   data={chartData}
-                  layout="vertical"
-                  margin={{ top: 4, right: 24, left: 8, bottom: 4 }}
+                  margin={{ top: 8, right: 16, left: 8, bottom: 4 }}
                 >
-                  <CartesianGrid
-                    stroke="#E2E8F0"
-                    strokeDasharray="3 3"
-                    horizontal={false}
-                  />
+                  <CartesianGrid stroke="#E2E8F0" strokeDasharray="3 3" />
                   <XAxis
-                    type="number"
+                    dataKey="name"
                     tick={{ fontSize: 12, fill: "#64748B" }}
-                    tickFormatter={(v) => formatCurrency(Number(v))}
+                    interval={0}
                   />
                   <YAxis
-                    type="category"
-                    dataKey="name"
-                    tick={{ fontSize: 12, fill: "#334155" }}
-                    width={110}
+                    tick={{ fontSize: 12, fill: "#64748B" }}
+                    tickFormatter={(v) => formatCurrency(Number(v))}
+                    width={90}
                   />
                   <Tooltip
                     formatter={(value) => formatCurrency(Number(value))}
@@ -301,12 +286,15 @@ export default function Dashboard() {
                       background: "#FFFFFF",
                     }}
                   />
-                  <Bar dataKey="total" radius={[0, 4, 4, 0]}>
-                    {chartData.map((entry, i) => (
-                      <Cell key={i} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="total"
+                    stroke="#1E3A8A"
+                    strokeWidth={2}
+                    dot={{ r: 4, fill: "#1E3A8A", strokeWidth: 0 }}
+                    activeDot={{ r: 6, fill: "#1D4ED8" }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           )}
