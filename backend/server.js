@@ -1,3 +1,5 @@
+// backend/server.js
+
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 const express = require("express");
@@ -12,54 +14,51 @@ const adminRoutes = require("./routes/admin");
 
 const app = express();
 
+// --- CORS Configuration ---
+// On Vercel, your frontend URL will be something like https://retain-app.vercel.app
+// We must allow that origin to make requests to this backend.
+const allowedOrigin = process.env.CLIENT_URL || "http://localhost:5173";
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: allowedOrigin,
     credentials: true,
   })
 );
-app.use(express.json({ limit: "1mb" }));
 
+app.use(express.json());
+
+// --- Health Check ---
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, timestamp: new Date().toISOString() });
+  res.json({ ok: true, env: process.env.NODE_ENV });
 });
 
+// --- API Routes ---
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/budgets", budgetRoutes);
 app.use("/api/admin", adminRoutes);
 
+// --- 404 Handler ---
 app.use((_req, res) => {
   res.status(404).json({ error: "NOT_FOUND", message: "Route not found" });
 });
 
+// --- Global Error Handler ---
 app.use((err, _req, res, _next) => {
-  console.error("Unhandled server error:", err);
-
-  const statusCode = typeof err.statusCode === "number" ? err.statusCode : 500;
-  const message = err.message || "Something went wrong";
-
-  res.status(statusCode).json({
-    error: err.error || "SERVER_ERROR",
-    message,
+  console.error(err);
+  res.status(500).json({
+    error: "SERVER_ERROR",
+    message: err.message || "Something went wrong",
   });
 });
 
-const PORT = Number(process.env.PORT || 5000);
+// --- Start Server ---
+const PORT = process.env.PORT || 5000;
 
-async function startServer() {
-  try {
-    await db.initializeDatabase();
-    app.listen(PORT, () => {
-      console.log(`Server on http://localhost:${PORT}`);
-    });
-  } catch (error) {
-    console.error("Failed to start server:", error);
-    console.warn(
-      "The API server was not able to initialize its database schema. Please grant CREATE privileges to the configured PostgreSQL user."
-    );
-  }
-}
+// Initialize DB tables (useful for first deploy to Neon)
+db.initializeDatabase().catch(console.error);
 
-startServer();
+app.listen(PORT, () => {
+  console.log(`Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`);
+});

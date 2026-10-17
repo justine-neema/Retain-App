@@ -1,15 +1,30 @@
+// backend/db.js
+
 const fs = require("fs");
 const path = require("path");
 const { Pool } = require("pg");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
-const pool = new Pool({
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT || 5432),
-  database: process.env.DB_DATABASE,
-});
+// Cloud providers (Neon, Supabase, Render) provide a single DATABASE_URL.
+// If it exists, use it. Otherwise, fall back to local credentials.
+const poolConfig = process.env.DATABASE_URL
+  ? {
+      connectionString: process.env.DATABASE_URL,
+      // Cloud databases often require SSL. This handles it safely.
+      ssl:
+        process.env.NODE_ENV === "production"
+          ? { rejectUnauthorized: false }
+          : false,
+    }
+  : {
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT || 5432),
+      database: process.env.DB_DATABASE,
+    };
+
+const pool = new Pool(poolConfig);
 
 async function initializeDatabase() {
   const tableCheck = await pool.query(
@@ -24,6 +39,11 @@ async function initializeDatabase() {
   }
 
   const schemaPath = path.join(__dirname, "schema.sql");
+  if (!fs.existsSync(schemaPath)) {
+    console.log("schema.sql not found, skipping auto-initialization.");
+    return;
+  }
+
   const schemaSql = fs.readFileSync(schemaPath, "utf8");
 
   try {
@@ -37,10 +57,11 @@ async function initializeDatabase() {
   }
 }
 
+// Test connection on startup
 pool
   .connect()
   .then((client) => {
-    console.log("Successfully connected to the retain database!");
+    console.log("Successfully connected to the database!");
     client.release();
   })
   .catch((err) => {
