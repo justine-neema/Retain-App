@@ -1,5 +1,3 @@
-// backend/controllers/budgetController.js
-
 const { z } = require("zod");
 const db = require("../db");
 
@@ -8,13 +6,7 @@ const budgetSchema = z.object({
   amount: z.coerce.number().nonnegative("Budget must be zero or greater"),
 });
 
-/**
- * GET /api/budgets
- * GET /api/budgets?month=YYYY-MM
- *
- * With no query param → returns all budgets for the user.
- * With ?month=YYYY-MM → returns a single budget or null.
- */
+// return all bugets forthe users and single budget
 async function getBudgets(req, res, next) {
   try {
     const { month } = req.query;
@@ -43,11 +35,7 @@ async function getBudgets(req, res, next) {
   }
 }
 
-/**
- * POST /api/budgets
- * Upsert: creates the budget for that month, or updates it if it exists.
- * Enforced by UNIQUE(user_id, month) on the table.
- */
+// create the budget for the enterd month and update it if it exists
 async function createOrUpdateBudget(req, res, next) {
   try {
     const parsed = budgetSchema.safeParse(req.body);
@@ -59,7 +47,8 @@ async function createOrUpdateBudget(req, res, next) {
     }
 
     const { month, amount } = parsed.data;
-
+    
+    // give unique id to each month
     const existing = await db.query(
       "SELECT id FROM budgets WHERE user_id = $1 AND month = $2",
       [req.user.sub, month]
@@ -89,10 +78,7 @@ async function createOrUpdateBudget(req, res, next) {
   }
 }
 
-/**
- * PUT /api/budgets/:id
- * Updates by ID. Ownership enforced via user_id in WHERE.
- */
+// update budget by id and enforce it vua user_id
 async function updateBudget(req, res, next) {
   try {
     const parsed = budgetSchema.safeParse(req.body);
@@ -126,10 +112,7 @@ async function updateBudget(req, res, next) {
   }
 }
 
-/**
- * DELETE /api/budgets/:id
- * Ownership enforced via user_id in WHERE.
- */
+// Allowingf user to delete their own budget
 async function deleteBudget(req, res, next) {
   try {
     const result = await db.query(
