@@ -56,7 +56,7 @@ export default function AppLayout() {
     }`;
 
   return (
-    <div className="h-screen bg-[#f9fafb] lg:flex lg:overflow-hidden">
+    <div className="h-screen bg-[#f9fafb] lg:flex">
       {/* Mobile top bar */}
       <header className="lg:hidden sticky top-0 z-30 h-14 bg-[#0f172a] text-white flex items-center justify-between px-4 shrink-0">
         <button onClick={() => setMobileOpen(true)} className="p-2 -ml-2 rounded-md hover:bg-slate-800">
@@ -86,7 +86,7 @@ export default function AppLayout() {
           fixed inset-y-0 left-0 z-50 w-64 bg-[#0f172a] text-white flex flex-col
           transform transition-transform duration-200 ease-in-out
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:translate-x-0 lg:static lg:inset-auto lg:shrink-0 lg:h-full
+          lg:translate-x-0 lg:static lg:inset-auto lg:shrink-0 lg:h-screen lg:overflow-y-auto
         `}
       >
         <div className="flex items-center px-6 h-20 shrink-0">
@@ -104,7 +104,7 @@ export default function AppLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-0 min-w-0">
+      <div className="flex-1 flex flex-col min-h-0 min-w-0 lg:h-screen">
         {/* Desktop Top Bar */}
         <header className="hidden lg:flex h-20 bg-white items-center justify-end px-8 border-b border-slate-100 shrink-0 sticky top-0 z-10">
           <div className="relative" ref={dropdownRef}>
@@ -135,7 +135,7 @@ export default function AppLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-8 lg:h-screen">
           <div className="max-w-6xl mx-auto">
             <Outlet />
           </div>
