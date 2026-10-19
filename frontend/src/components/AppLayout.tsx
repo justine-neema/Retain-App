@@ -56,7 +56,7 @@ export default function AppLayout() {
     }`;
 
   return (
-    // CHANGED: Changed to h-screen overflow-hidden to lock the frame
+    
     <div className="h-screen overflow-hidden bg-[#f9fafb] lg:flex">
       
       {/* Mobile top bar */}
@@ -68,6 +68,14 @@ export default function AppLayout() {
         </button>
         <span className="font-bold tracking-wide">Retain</span>
         <div className="w-10" />
+         <div className="content-end">
+           <button
+                  onClick={handleLogout}
+                  className="text-sm font-medium text-red-600 hover:text-red-700 w-full text-left"
+                >
+                  Log out
+                </button>
+         </div>
       </header>
 
       {mobileOpen && (
@@ -98,7 +106,7 @@ export default function AppLayout() {
       </aside>
 
       {/* Main Content Area */}
-      {/* CHANGED: Now this inner container handles the scrolling */}
+      
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-y-auto">
         
         {/* Desktop Top Bar */}
