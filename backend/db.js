@@ -1,16 +1,13 @@
-// backend/db.js
-
 const fs = require("fs");
 const path = require("path");
 const { Pool } = require("pg");
 require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
-// Cloud providers (Neon, Supabase, Render) provide a single DATABASE_URL.
-// If it exists, use it. Otherwise, fall back to local credentials.
+// use cloud database providers
 const poolConfig = process.env.DATABASE_URL
   ? {
       connectionString: process.env.DATABASE_URL,
-      // Cloud databases often require SSL. This handles it safely.
+      // including ssl for cloud database
       ssl:
         process.env.NODE_ENV === "production"
           ? { rejectUnauthorized: false }
