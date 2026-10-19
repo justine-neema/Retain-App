@@ -1,5 +1,3 @@
-// backend/controllers/expenseController.js
-
 const { z } = require("zod");
 const db = require("../db");
 
@@ -32,7 +30,6 @@ function normalizeExpense(row) {
   };
 }
 
-// SELECT clause reused everywhere an expense is fetched with its category joined.
 const EXPENSE_SELECT = `
   SELECT e.id, e.user_id, e.title, e.amount, e.category_id, e.date, e.payment_method,
          e.notes, e.created_at, e.updated_at,
@@ -41,7 +38,6 @@ const EXPENSE_SELECT = `
   JOIN categories c ON c.id = e.category_id
 `;
 
-/* -------------------- GET /api/expenses/summary -------------------- */
 async function getExpenseSummary(req, res, next) {
   try {
     const month = req.query.month || new Date().toISOString().slice(0, 7);
@@ -61,10 +57,10 @@ async function getExpenseSummary(req, res, next) {
     const highestResult = await db.query(
       `SELECT e.id, e.title, e.amount, e.date
        FROM expenses e
-       WHERE e.user_id = $1
+       WHERE e.user_id = $1 AND to_char(e.date, 'YYYY-MM') = $2
        ORDER BY e.amount DESC, e.date DESC
        LIMIT 1`,
-      [req.user.sub]
+      [req.user.sub, month]
     );
 
     const byCategory = await db.query(
@@ -79,12 +75,12 @@ async function getExpenseSummary(req, res, next) {
     );
 
     const recent = await db.query(
-  `${EXPENSE_SELECT}
-   WHERE e.user_id = $1 AND to_char(e.date, 'YYYY-MM') = $2
-   ORDER BY e.date DESC, e.created_at DESC
-   LIMIT 10`,
-  [req.user.sub, month]
-);
+      `${EXPENSE_SELECT}
+       WHERE e.user_id = $1
+       ORDER BY e.date DESC, e.created_at DESC
+       LIMIT 5`,
+      [req.user.sub]
+    );
 
     const totalSpent = Number(totalResult.rows[0]?.total_spent || 0);
     const monthlyBudget = Number(budgetResult.rows[0]?.amount || 0);
@@ -115,7 +111,6 @@ async function getExpenseSummary(req, res, next) {
   }
 }
 
-/* -------------------- GET /api/expenses/dashboard -------------------- */
 async function getDashboard(req, res, next) {
   try {
     const month = req.query.month || new Date().toISOString().slice(0, 7);
@@ -124,7 +119,7 @@ async function getDashboard(req, res, next) {
       `SELECT
          COALESCE(SUM(CASE WHEN to_char(date, 'YYYY-MM') = $2 THEN amount ELSE 0 END), 0) AS total_spent_this_month,
          COALESCE(SUM(amount), 0) AS total_spent_all_time,
-         MAX(amount) AS highest_expense
+         MAX(CASE WHEN to_char(date, 'YYYY-MM') = $2 THEN amount ELSE NULL END) AS highest_expense
        FROM expenses
        WHERE user_id = $1`,
       [req.user.sub, month]
@@ -150,9 +145,10 @@ async function getDashboard(req, res, next) {
               c.icon AS category_icon
        FROM categories c
        LEFT JOIN expenses e ON e.category_id = c.id AND e.user_id = $1
+       WHERE to_char(e.date, 'YYYY-MM') = $2 OR e.id IS NULL
        GROUP BY c.id, c.name, c.color, c.icon
        ORDER BY total DESC, c.name ASC`,
-      [req.user.sub]
+      [req.user.sub, month]
     );
 
     const row = summary.rows[0] || {};
@@ -176,7 +172,6 @@ async function getDashboard(req, res, next) {
   }
 }
 
-/* -------------------- GET /api/expenses/search -------------------- */
 async function searchExpenses(req, res, next) {
   try {
     const {
@@ -187,6 +182,8 @@ async function searchExpenses(req, res, next) {
       endDate,
       sortBy = "date",
       order = "desc",
+      page = "1",
+      limit = "20",
     } = req.query;
 
     const whereClauses = ["e.user_id = $1"];
@@ -233,23 +230,43 @@ async function searchExpenses(req, res, next) {
     };
 
     const sortColumn = sortColumns[sortBy] || "e.date";
-    const sortDirection =
-      String(order).toLowerCase() === "asc" ? "ASC" : "DESC";
+    const sortDirection = String(order).toLowerCase() === "asc" ? "ASC" : "DESC";
 
-    const result = await db.query(
-      `${EXPENSE_SELECT}
-       WHERE ${whereClauses.join(" AND ")}
-       ORDER BY ${sortColumn} ${sortDirection}, e.created_at DESC`,
-      params
-    );
+    const limitNum = Math.max(1, Math.min(parseInt(String(limit), 10) || 20, 100));
+    const pageNum = Math.max(1, parseInt(String(page), 10) || 1);
+    const offset = (pageNum - 1) * limitNum;
 
-    return res.json({ expenses: result.rows.map(normalizeExpense) });
+    const countQuery = `
+      SELECT COUNT(*)::int AS total
+      FROM expenses e
+      WHERE ${whereClauses.join(" AND ")}
+    `;
+    const countResult = await db.query(countQuery, params);
+    const totalItems = countResult.rows[0].total;
+
+    const dataQuery = `
+      ${EXPENSE_SELECT}
+      WHERE ${whereClauses.join(" AND ")}
+      ORDER BY ${sortColumn} ${sortDirection}, e.created_at DESC
+      LIMIT $${index} OFFSET $${index + 1}
+    `;
+    
+    const dataParams = [...params, limitNum, offset];
+    
+    const result = await db.query(dataQuery, dataParams);
+
+    return res.json({
+      expenses: result.rows.map(normalizeExpense),
+      totalItems,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(totalItems / limitNum),
+    });
   } catch (err) {
     return next(err);
   }
 }
 
-/* -------------------- GET /api/expenses -------------------- */
 async function listExpenses(req, res, next) {
   try {
     const result = await db.query(
@@ -265,7 +282,6 @@ async function listExpenses(req, res, next) {
   }
 }
 
-/* -------------------- GET /api/expenses/:id -------------------- */
 async function getExpenseById(req, res, next) {
   try {
     const result = await db.query(
@@ -287,7 +303,6 @@ async function getExpenseById(req, res, next) {
   }
 }
 
-/* -------------------- POST /api/expenses -------------------- */
 async function createExpense(req, res, next) {
   try {
     const parsed = expenseSchema.safeParse(req.body);
@@ -318,21 +333,17 @@ async function createExpense(req, res, next) {
       [req.user.sub, title, amount, categoryId, date, paymentMethod, notes || ""]
     );
 
-    // Fetch the joined row so the response includes category metadata.
     const full = await db.query(
       `${EXPENSE_SELECT} WHERE e.id = $1`,
       [inserted.rows[0].id]
     );
 
-    return res
-      .status(201)
-      .json({ expense: normalizeExpense(full.rows[0]) });
+    return res.status(201).json({ expense: normalizeExpense(full.rows[0]) });
   } catch (err) {
     return next(err);
   }
 }
 
-/* -------------------- PUT /api/expenses/:id -------------------- */
 async function updateExpense(req, res, next) {
   try {
     const parsed = expenseSchema.safeParse(req.body);
@@ -400,7 +411,6 @@ async function updateExpense(req, res, next) {
   }
 }
 
-/* -------------------- DELETE /api/expenses/:id -------------------- */
 async function deleteExpense(req, res, next) {
   try {
     const result = await db.query(
