@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../lib/api";
 import type { Expense, ExpenseResponse } from "../types/expense";
-import { formatCurrency, formatDate } from "../lib/format";
+import { formatCurrency, formatDate } from "../lib/format"; // Using shared formatCurrency
 import { paymentMethodLabel } from "../lib/constants";
+import ExpenseFormModal from "../components/expenses/ExpenseFormModal";
+import Modal from "../components/Modal";
 
 export default function ExpenseDetail() {
   const { id } = useParams<{ id: string }>();
@@ -12,32 +14,22 @@ export default function ExpenseDetail() {
   const [expense, setExpense] = useState<Expense | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
     setLoading(true);
 
-    api
-      .get<ExpenseResponse>(`/expenses/${id}`)
-      .then((res) => {
-        if (!cancelled) setExpense(res.data.expense);
-      })
-      .catch((err) => {
-        if (!cancelled)
-          setError(
-            err?.response?.data?.message ?? "Failed to load expense"
-          );
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    api.get<ExpenseResponse>(`/expenses/${id}`)
+      .then((res) => { if (!cancelled) setExpense(res.data.expense); })
+      .catch((err) => { if (!cancelled) setError(err?.response?.data?.message ?? "Failed to load"); })
+      .finally(() => { if (!cancelled) setLoading(false); });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [id]);
 
   async function handleDelete() {
@@ -47,146 +39,82 @@ export default function ExpenseDetail() {
       await api.delete(`/expenses/${id}`);
       navigate("/expenses");
     } catch (err: any) {
-      setError(err?.response?.data?.message ?? "Failed to delete expense");
+      setError(err?.response?.data?.message ?? "Failed to delete");
       setDeleting(false);
       setConfirmOpen(false);
     }
   }
 
-  if (loading) {
-    return <p className="text-sm text-slate-500">Loading…</p>;
+  function handleEditSuccess() {
+    if (!id) return;
+    api.get<ExpenseResponse>(`/expenses/${id}`).then((res) => setExpense(res.data.expense));
   }
 
-  if (error || !expense) {
-    return (
-      <div>
-        <div className="rounded-md bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
-          {error ?? "Expense not found"}
-        </div>
-        <Link
-          to="/expenses"
-          className="inline-block mt-4 text-sm text-blue-600 hover:underline"
-        >
-          ← Back to expenses
-        </Link>
-      </div>
-    );
-  }
+  if (loading) return <p className="text-sm text-slate-500 py-10">Loading…</p>;
+  if (error || !expense) return <div className="text-red-600 text-sm py-10">{error ?? "Not found"}</div>;
 
   return (
     <div className="max-w-2xl">
-      {/* Header */}
       <div className="flex items-start justify-between mb-6 gap-4">
         <div className="min-w-0">
-          <Link
-            to="/expenses"
-            className="text-xs text-slate-500 hover:text-slate-700"
-          >
-            ← Back to expenses
-          </Link>
-          <h1 className="text-2xl font-bold text-slate-800 mt-2 break-words">
-            {expense.title}
-          </h1>
+          <Link to="/expenses" className="text-xs text-slate-500 hover:text-slate-700">← Back to expenses</Link>
+          <h1 className="text-3xl font-bold text-slate-900 mt-2 break-words">{expense.title}</h1>
         </div>
-        <p className="text-2xl font-bold text-slate-800 whitespace-nowrap">
+        <p className="text-3xl font-bold text-slate-900 whitespace-nowrap font-money">
           {formatCurrency(expense.amount)}
         </p>
       </div>
 
-      {/* Details card */}
-      <div className="bg-white rounded-lg shadow divide-y divide-slate-200">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm divide-y divide-slate-100">
         <Row label="Date">{formatDate(expense.date)}</Row>
         <Row label="Category">
           <span className="inline-flex items-center gap-2">
-            {expense.categoryColor && (
-              <span
-                className="inline-block h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: expense.categoryColor }}
-              />
-            )}
+            {expense.categoryColor && <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: expense.categoryColor }} />}
             {expense.categoryName}
           </span>
         </Row>
-        <Row label="Payment method">
-          {paymentMethodLabel(expense.paymentMethod)}
-        </Row>
+        <Row label="Payment method">{paymentMethodLabel(expense.paymentMethod)}</Row>
         {expense.notes && <Row label="Notes">{expense.notes}</Row>}
         <Row label="Created">{formatDate(expense.createdAt)}</Row>
         <Row label="Last updated">{formatDate(expense.updatedAt)}</Row>
       </div>
 
-      {/* Actions */}
       <div className="flex items-center gap-3 mt-6">
-        <Link
-          to={`/expenses/${expense.id}/edit`}
-          className="rounded-md bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700"
-        >
+        <button onClick={() => setIsEditModalOpen(true)} className="rounded-md bg-[#047857] text-white px-4 py-2 text-sm font-medium hover:bg-[#065f46] transition-colors">
           Edit
-        </Link>
-        <button
-          type="button"
-          onClick={() => setConfirmOpen(true)}
-          className="rounded-md border border-red-300 text-red-700 px-4 py-2 text-sm font-medium hover:bg-red-50"
-        >
+        </button>
+        <button onClick={() => setConfirmOpen(true)} className="rounded-md border border-red-300 text-red-700 px-4 py-2 text-sm font-medium hover:bg-red-50 transition-colors">
           Delete
         </button>
       </div>
 
-      {/* Confirm delete modal */}
-      {confirmOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => !deleting && setConfirmOpen(false)}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl max-w-sm w-full p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-lg font-semibold text-slate-800 mb-2">
-              Delete this expense?
-            </h2>
-            <p className="text-sm text-slate-600 mb-6">
-              "{expense.title}" will be permanently removed. This cannot be
-              undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setConfirmOpen(false)}
-                disabled={deleting}
-                className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={deleting}
-                className="rounded-md bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 disabled:opacity-60"
-              >
-                {deleting ? "Deleting…" : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ExpenseFormModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} onSuccess={handleEditSuccess} expenseToEdit={expense} />
+
+      <Modal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title="Delete this expense?"
+        maxWidth="max-w-sm"
+        footer={
+          <>
+            <button onClick={() => setConfirmOpen(false)} disabled={deleting} className="rounded-md border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-60">Cancel</button>
+            <button onClick={handleDelete} disabled={deleting} className="rounded-md bg-red-600 text-white px-4 py-2 text-sm font-medium hover:bg-red-700 disabled:opacity-60">{deleting ? "Deleting…" : "Delete"}</button>
+          </>
+        }
+      >
+        <p className="text-sm text-slate-600">
+          "{expense.title}" will be permanently removed. This cannot be undone.
+        </p>
+      </Modal>
     </div>
   );
 }
 
-function Row({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between px-6 py-4 gap-4">
       <span className="text-sm text-slate-500 whitespace-nowrap">{label}</span>
-      <span className="text-sm text-slate-800 text-right break-words">
-        {children}
-      </span>
+      <span className="text-sm font-medium text-slate-900 text-right break-words">{children}</span>
     </div>
   );
 }

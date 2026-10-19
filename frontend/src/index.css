@@ -1,1 +1,80 @@
 @import "tailwindcss";
+
+/* ---------- Fonts ---------- */
+html {
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Numbers in financial apps look best in monospace */
+.font-money {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+/* ---------- Base ---------- */
+html,
+body {
+  overflow-x: hidden;
+}
+
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+@media (min-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 14px;
+  }
+}
+
+/* ---------- Financial palette (Target Design) ---------- */
+:root {
+  /* Backgrounds */
+  --bg-page: #f9fafb;      /* very light warm gray */
+  --bg-surface: #ffffff;   /* cards */
+  --bg-sidebar: #0f172a;   /* dark slate/green background from image */
+
+  /* Text */
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+
+  /* Brand (Deep Emerald Green from image) */
+  --brand-primary: #047857;  /* emerald-700 */
+  --brand-hover: #065f46;    /* emerald-800 */
+  --brand-soft: #ecfdf5;     /* emerald-50 */
+
+  /* Semantic */
+  --warning: #b45309;
+  --warning-soft: #fffbeb;
+  --danger: #b91c1c;
+  --danger-soft: #fef2f2;
+
+  /* Borders */
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}

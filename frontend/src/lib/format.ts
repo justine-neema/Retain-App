@@ -7,10 +7,7 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-/**
- * Format an ISO date string as "MMM D, YYYY" (e.g., "Oct 15, 2026").
- * Accepts "YYYY-MM-DD" or full ISO timestamps.
- */
+// format an ISO date string as "MMM, D, YYYY"
 export function formatDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString("en-US", {
@@ -20,18 +17,14 @@ export function formatDate(iso: string): string {
   });
 }
 
-/**
- * Convert a Date (or "now") to "YYYY-MM" — the format budgets use.
- */
+// convert date to the set format for budget
 export function toMonthKey(date: Date = new Date()): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
   return `${y}-${m}`;
 }
 
-/**
- * Convert a Date (or "now") to "YYYY-MM-DD" — the format expense dates use.
- */
+// convert date to the format expense date use
 export function toDateInputValue(date: Date = new Date()): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -39,10 +32,7 @@ export function toDateInputValue(date: Date = new Date()): string {
   return `${y}-${m}-${d}`;
 }
 
-/**
- * Human-friendly month label from a "YYYY-MM" string.
- * Example: "2026-10" → "October 2026".
- */
+// human frindly month laber in string format
 export function formatMonthLabel(month: string): string {
   const [y, m] = month.split("-").map(Number);
   return new Date(y, m - 1, 1).toLocaleDateString("en-US", {
