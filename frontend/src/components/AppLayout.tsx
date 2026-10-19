@@ -56,9 +56,7 @@ export default function AppLayout() {
     }`;
 
   return (
-    
-    <div className="h-screen overflow-hidden bg-[#f9fafb] lg:flex">
-      
+    <div className="h-screen bg-[#f9fafb] lg:flex lg:overflow-hidden">
       {/* Mobile top bar */}
       <header className="lg:hidden sticky top-0 z-30 h-14 bg-[#0f172a] text-white flex items-center justify-between px-4 shrink-0">
         <button onClick={() => setMobileOpen(true)} className="p-2 -ml-2 rounded-md hover:bg-slate-800">
@@ -68,14 +66,14 @@ export default function AppLayout() {
         </button>
         <span className="font-bold tracking-wide">Retain</span>
         <div className="w-10" />
-         <div className="content-end">
-           <button
-                  onClick={handleLogout}
-                  className="text-sm font-medium text-red-600 hover:text-red-700 w-full text-left"
-                >
-                  Log out
-                </button>
-         </div>
+        <div className="content-end">
+          <button
+            onClick={handleLogout}
+            className="text-sm font-medium text-red-600 hover:text-red-700 w-full text-left"
+          >
+            Log out
+          </button>
+        </div>
       </header>
 
       {mobileOpen && (
@@ -106,9 +104,7 @@ export default function AppLayout() {
       </aside>
 
       {/* Main Content Area */}
-      
-      <div className="flex-1 flex flex-col h-full min-w-0 overflow-y-auto">
-        
+      <div className="flex-1 flex flex-col min-h-0 min-w-0">
         {/* Desktop Top Bar */}
         <header className="hidden lg:flex h-20 bg-white items-center justify-end px-8 border-b border-slate-100 shrink-0 sticky top-0 z-10">
           <div className="relative" ref={dropdownRef}>
@@ -139,7 +135,7 @@ export default function AppLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-4 sm:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-8">
           <div className="max-w-6xl mx-auto">
             <Outlet />
           </div>
