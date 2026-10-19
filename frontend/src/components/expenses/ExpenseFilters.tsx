@@ -1,7 +1,5 @@
-// frontend/src/components/expenses/ExpenseFilters.tsx
-
 import { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../../redux/store";
 import {
   resetFilters,
   setDateFrom,
