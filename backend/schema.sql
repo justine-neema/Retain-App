@@ -1,6 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- ---------------- users ----------------
+-- Users
 CREATE TABLE IF NOT EXISTS users (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name          TEXT NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- ---------------- categories ----------------
+-- Categories
 CREATE TABLE IF NOT EXISTS categories (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name       TEXT UNIQUE NOT NULL,
@@ -21,12 +21,12 @@ CREATE TABLE IF NOT EXISTS categories (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Seed the default category (used when admins delete a category)
+-- seed the default category
 INSERT INTO categories (name, is_default)
 VALUES ('Uncategorized', TRUE)
 ON CONFLICT (name) DO NOTHING;
 
--- ---------------- expenses ----------------
+-- expenses
 CREATE TABLE IF NOT EXISTS expenses (
   id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id        UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS expenses (
 CREATE INDEX IF NOT EXISTS idx_expenses_user_date ON expenses(user_id, date DESC);
 CREATE INDEX IF NOT EXISTS idx_expenses_user_cat  ON expenses(user_id, category_id);
 
--- ---------------- budgets ----------------
+-- budgets
 CREATE TABLE IF NOT EXISTS budgets (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
