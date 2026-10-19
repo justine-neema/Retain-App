@@ -1,33 +1,57 @@
 # Retain App
 
-Retain App is a full-stack personal expense tracking and budgeting application. It helps users manage categories, record expenses, monitor budgets, and review spending trends from a React frontend backed by an Express API and PostgreSQL database.
+# Live demo: https://retain-app-flax.vercel.app/
 
-## Features
+Retain is a full-stack personal expense and budget manager built with React + TypeScript on the frontend and a Node.js/Express backend with PostgreSQL. The application allows users to manage expenses, track monthly budgets, view dashboard insights, and access an admin overview for platform-level analytics.
 
-- User authentication and protected routes
-- Expense tracking with filters and detail views
-- Budget management and monitoring
-- Category management
-- Admin dashboard for managing users and expenses
-- Responsive dashboard UI for overview insights
+## Project Goal
 
-## Tech Stack
+This project was designed to satisfy the summative requirement for a personal expense management system. It focuses on:
 
-- Frontend: React + TypeScript + Vite
-- State management: Redux Toolkit
-- API client: Axios
-- Backend: Node.js + Express
-- Database: PostgreSQL
-- Authentication: JWT + bcrypt
+- recording and managing personal expenses
+- filtering and searching by date, category, payment method, and text
+- setting and monitoring monthly budgets
+- viewing summary and dashboard information
+- protecting user data using authentication and authorization
+- enabling admin-only analytics and category management
 
-## Repository Structure
+## Main Features
+
+- User sign up, login, logout, and protected route handling
+- Expense CRUD operations with filters and sorting
+- Monthly budget tracking with remaining amount and budget status
+- Dashboard overview for monthly spending and recent activity
+- Category management for organizing expenses
+- Admin dashboard with user and expense insights
+- Responsive interface for desktop and mobile usage
+
+## Technologies Used
+
+### Frontend
+- React
+- TypeScript
+- Vite
+- Redux Toolkit
+- React Router
+- Axios
+- Recharts
+
+### Backend
+- Node.js
+- Express
+- PostgreSQL
+- JWT authentication
+- bcryptjs
+- dotenv
+- CORS
+
+## Project Structure
 
 ```text
 Retain-App/
 ├── backend/
 │   ├── controllers/
 │   ├── routes/
-│   ├── .env
 │   ├── db.js
 │   ├── middleware.js
 │   ├── package.json
@@ -35,32 +59,58 @@ Retain-App/
 │   └── server.js
 ├── frontend/
 │   ├── src/
-│   ├── .env
 │   ├── package.json
 │   ├── vite.config.ts
 │   └── index.html
-├── .git/
-└── README.md
+├── README.md
+└── LICENSE
 ```
+
+## Architecture Overview
+
+### Frontend
+The frontend is built with React and TypeScript. It handles:
+
+- authentication state with React Context
+- route guarding using protected route components
+- Redux-managed search, sorting, and filtering logic
+- UI rendering for expenses, dashboard, budgets, and admin views
+
+### Backend
+The backend is built with Express and uses PostgreSQL for persistent storage. It exposes RESTful API routes for:
+
+- authentication
+- expenses
+- budgets
+- categories
+- admin analytics
 
 ## Prerequisites
 
-Before running the project, make sure you have:
+Before running locally, ensure you have:
 
-- Node.js 18+ and npm
-- PostgreSQL running locally or on a reachable server
-- A database created for the app (for example: `retain`)
+- Node.js 18+
+- npm
+- PostgreSQL installed and running
+- A database created for the app, eg. `retain`
 
-## Backend Setup
+## Local Setup
 
-1. Open a terminal in the backend folder:
+### 1) Clone the repo
+
+```bash
+git clone <repository-url>
+cd Retain-App
+```
+
+### 2) Backend setup
 
 ```bash
 cd backend
 npm install
 ```
 
-2. Create or update the backend environment file:
+Create a `.env` file in `backend/` with:
 
 ```env
 DB_USER=retain_user
@@ -70,9 +120,11 @@ DB_PORT=5432
 DB_DATABASE=retain
 PORT=5000
 CLIENT_URL=http://localhost:5173
+JWT_SECRET=your_super_secret_key
+NODE_ENV=development
 ```
 
-3. Start the API server:
+Start the API:
 
 ```bash
 npm run dev
@@ -84,160 +136,58 @@ The backend runs on:
 http://localhost:5000
 ```
 
-The server will automatically initialize the PostgreSQL schema if required via the SQL file in `backend/schema.sql`.
-
-## Frontend Setup
-
-1. Open a terminal in the frontend folder:
+### 3) Frontend setup
 
 ```bash
 cd frontend
 npm install
 ```
 
-2. Create or update the frontend environment file:
+Create a `.env` file in `frontend/` with:
 
 ```env
 VITE_API_URL=http://localhost:5000/api
 ```
 
-3. Start the app:
+Start the app:
 
 ```bash
 npm run dev
 ```
 
-The frontend typically runs on:
+The frontend runs on:
 
 ```text
 http://localhost:5173
 ```
 
-## Useful Scripts
+## Local Development Notes
 
-### Backend
+- Start the backend before the frontend.
+- Use the frontend to sign up or sign in.
+- Admin-only features require an account with the `ADMIN` role.
+- The app depends on a PostgreSQL database and JWT-based authentication.
 
-```bash
-cd backend
-npm run dev   # runs the server with nodemon
-npm start     # runs the server with Node
-npm test      # runs project tests
-```
+## API Documentation
 
-### Frontend
-
-```bash
-cd frontend
-npm run dev   # starts the Vite development server
-npm run build # creates a production build
-npm run lint  # runs the linter
-npm run preview # previews the production build
-```
-
-## API Base URL
-
-The frontend sends requests to:
-
-```text
-http://localhost:5000/api
-```
+For the complete API reference, see [API.md](API.md).
 
 ## Deployment
 
-### 1. Prepare the backend for production
+The app is currently deployed here:
 
-Set the backend environment variables in a production environment such as Render, Railway, Fly.io, or a VPS:
+https://retain-app-flax.vercel.app/
 
-```env
-DB_USER=retain_user
-DB_PASSWORD=your_secure_password
-DB_HOST=your_database_host
-DB_PORT=5432
-DB_DATABASE=retain
-PORT=5000
-CLIENT_URL=https://your-frontend-domain.com
-JWT_SECRET=your-long-random-secret
-JWT_EXPIRES_IN=7d
-NODE_ENV=production
-```
-
-Then start the API in production mode:
-
-```bash
-cd backend
-npm install
-npm start
-```
-
-The Express server listens on the configured `PORT` and serves the API under `/api` routes.
-
-### 2. Prepare the frontend for production
-
-Update the frontend environment variable to point to the deployed backend API:
-
-```env
-VITE_API_URL=https://your-backend-domain.com/api
-```
-
-Build the frontend:
-
-```bash
-cd frontend
-npm install
-npm run build
-```
-
-This produces the static files in the `frontend/dist` directory.
-
-### 3. Deploy the frontend
-
-You can deploy the frontend in several ways:
-
-- Vercel
-- Netlify
-- GitHub Pages
-- any static hosting provider
-- a Node/Nginx server serving the contents of `frontend/dist`
-
-For a basic static hosting setup:
-
-```bash
-cd frontend
-npm run build
-```
-
-Upload the generated `dist` folder to your hosting provider.
-
-### 4. Deploy the backend
-
-For the backend, deploy the `backend` directory as a Node.js app. Make sure your hosting platform installs dependencies and runs:
-
-```bash
-npm install
-npm start
-```
-
-### 5. Recommended production setup
-
-- Use HTTPS for both frontend and backend domains.
-- Keep database credentials in environment variables, not in source control.
-- Use a strong JWT secret.
-- Configure your database to allow connections from the deployment environment.
-- If using a reverse proxy, route `/api` requests to the backend service and serve the frontend for the root domain.
+For deployment, the frontend should point to the backend API using `VITE_API_URL`, and the backend should be configured with secure production environment values for the database, JWT secret, and CORS origin.
 
 ## Notes
 
-- The backend uses CORS configuration with `CLIENT_URL` and defaults to `http://localhost:5173`.
-- The frontend requires `VITE_API_URL` to be defined before the app can load.
-- Admin and authenticated routes rely on JWT tokens stored in browser local storage.
-
-## Contributing
-
-1. Create a feature branch.
-2. Make your changes.
-3. Run the relevant build or validation commands.
-4. Submit a pull request with a clear summary.
+- PostgreSQL is the main persistence layer.
+- Database initialization runs during backend startup.
+- Auth is protected using JWT middleware.
+- Admin functionality is restricted to users with the `ADMIN` role.
+- The app follows a modular structure separating frontend and backend responsibilities.
 
 ## License
 
-This project is currently unlicensed unless added later by the project owner.
+This project is licensed under the MIT License.
