@@ -24,10 +24,7 @@ function requireAuth(req, res, next) {
   }
 }
 
-/**
- * Rejects the request with 403 if the authenticated user isn't an admin.
- * MUST be used after requireAuth (assumes req.user already exists).
- */
+// Reject the request for user which are not admin
 function requireAdmin(req, res, next) {
   if (!req.user || req.user.role !== "ADMIN") {
     return res.status(403).json({
