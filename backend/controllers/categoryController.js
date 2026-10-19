@@ -1,12 +1,6 @@
-// backend/controllers/categoryController.js
-
 const db = require("../db");
 
-/**
- * GET /api/categories
- * Public to any authenticated user.
- * Returns every category, ordered alphabetically.
- */
+// show all categories to every authenticated use, orderd alphabetically
 async function listCategories(req, res, next) {
   try {
     const result = await db.query(
