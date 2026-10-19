@@ -1,5 +1,3 @@
-// backend/controllers/authController.js
-
 const db = require("../db");
 const { hashPassword, verifyPassword, signToken } = require("../auth");
 
@@ -12,10 +10,7 @@ function publicUser(row) {
   };
 }
 
-/**
- * POST /api/auth/signup
- * Creates a user, returns { token, user }.
- */
+// creating a user and return token
 async function signup(req, res, next) {
   try {
     const { name, email, password } = req.body || {};
@@ -72,10 +67,7 @@ async function signup(req, res, next) {
   }
 }
 
-/**
- * POST /api/auth/login
- * Verifies credentials, returns { token, user }.
- */
+// Verify if credentials are correct and return user $ token
 async function login(req, res, next) {
   try {
     const { email, password } = req.body || {};
@@ -117,10 +109,7 @@ async function login(req, res, next) {
   }
 }
 
-/**
- * GET /api/auth/me
- * Requires requireAuth middleware. Returns the current user.
- */
+// require authentication middleware and return the current user
 async function me(req, res, next) {
   try {
     const result = await db.query(
