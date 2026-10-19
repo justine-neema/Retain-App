@@ -34,6 +34,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, expenseTo
 
   useEffect(() => {
     if (!isOpen) return;
+
     setError(null);
     setFieldErrors({});
 
@@ -46,21 +47,29 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, expenseTo
         paymentMethod: expenseToEdit.paymentMethod,
         notes: expenseToEdit.notes ?? "",
       });
-    } else {
-      setForm(emptyForm);
+      return;
     }
 
-    if (categories.length === 0) {
-      api.get<CategoryListResponse>("/categories")
-        .then((res) => {
-          setCategories(res.data.categories);
-          if (!isEdit && !form.categoryId && res.data.categories.length > 0) {
-            setForm((prev) => ({ ...prev, categoryId: res.data.categories[0].id }));
-          }
-        })
-        .catch(() => setCategories([]));
-    }
-  }, [isOpen, expenseToEdit, isEdit, categories.length, form.categoryId]);
+    setForm({ ...emptyForm, date: toDateInputValue() });
+
+    api
+      .get<CategoryListResponse>("/categories")
+      .then((res) => {
+        const fetchedCategories = res.data.categories;
+        setCategories(fetchedCategories);
+
+        if (fetchedCategories.length > 0) {
+          setForm((prev) => ({
+            ...prev,
+            ...emptyForm,
+            date: toDateInputValue(),
+            categoryId: fetchedCategories[0].id,
+            paymentMethod: "cash",
+          }));
+        }
+      })
+      .catch(() => setCategories([]));
+  }, [isOpen, expenseToEdit]);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
